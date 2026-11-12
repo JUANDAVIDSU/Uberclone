@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { View } from 'react-native';
 import { Button, HelperText, Menu } from 'react-native-paper';
@@ -7,7 +6,6 @@ export default function Selector({ label, value, options, onSelect, error }) {
 
   const [open, setOpen] = useState(false);
 
-  
   const current = options.find((o) => o.value === value);
 
   return (

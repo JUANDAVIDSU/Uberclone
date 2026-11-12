@@ -1,7 +1,8 @@
 
 import { useState } from 'react';
 import { ScrollView } from 'react-native';
-import { Button, HelperText, TextInput } from 'react-native-paper';
+import { Button, HelperText } from 'react-native-paper';
+import TextInput from '../components/Input';
 
 import { useRegistro } from '../context/RegistroContext';
 import { validateTab1 } from '../utils/validations';
@@ -25,9 +26,9 @@ export default function DatosScreen({ navigation }) {
   const err = (k) => (touched[k] ? all[k] : undefined) || serverErrors[k];
 
   const set = (k, v) => {
-    setTab1({ ...tab1, [k]: v });
-    setTouched({ ...touched, [k]: true });
-    setServerErrors({ ...serverErrors, [k]: undefined });
+    setTab1((prev) => ({ ...prev, [k]: v }));
+    setTouched((prev) => ({ ...prev, [k]: true }));
+    setServerErrors((prev) => ({ ...prev, [k]: undefined }));
   };
   
   const field = (k, label, extra = {}) => (

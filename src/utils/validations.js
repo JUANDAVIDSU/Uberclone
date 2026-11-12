@@ -1,3 +1,5 @@
+import { TECNOMECANICA_DESDE_ANOS } from '../config/pricing';
+
 const SOLO_LETRAS = /^[A-Za-zÁÉÍÓÚáéíóúÑñÜü ]+$/;
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const PLACA = /^[A-Z]{3}\d{3}$/;
@@ -54,7 +56,9 @@ export const validateTab2 = (d) => {
   if (!/^\d{4}$/.test(d.year || '') || Number(d.year) > new Date().getFullYear())
     e.year = 'err.year';
 
-  if (!d.color) e.color = 'err.color';
+    if (!d.color?.trim()) e.color = 'err.required';
+    else if (d.color.length > 20) e.color = 'err.max20';
+    else if (!SOLO_LETRAS.test(d.color)) e.color = 'err.onlyLetters';
 
   const cap = Number(d.capacity);
   if (!/^\d+$/.test(d.capacity || '') || cap < 1) e.capacity = 'err.capacity';
@@ -62,5 +66,56 @@ export const validateTab2 = (d) => {
 
   if (!d.vehiclePhoto) e.vehiclePhoto = 'err.vehiclePhoto';
 
+  return e;
+};
+
+// ¿La revisión técnico-mecánica aplica según el año del vehículo?
+export const rtmApplies = (year) => {
+  if (!/^\d{4}$/.test(year || '')) return false;
+  return new Date().getFullYear() - Number(year) >= TECNOMECANICA_DESDE_ANOS;
+};
+
+// La fecha de vencimiento debe ser posterior a hoy (se compara sin la hora)
+const esFutura = (fecha) => {
+  const f = new Date(fecha);
+  f.setHours(0, 0, 0, 0);
+  const hoy = new Date();
+  hoy.setHours(0, 0, 0, 0);
+  return f > hoy;
+};
+
+// pestaña 3: documentos y pagos (recibe los datos de la pestaña 3 y el año del vehículo)
+export const validateTab3 = (d, vehicleYear) => {
+  const e = {};
+
+  if (!/^\d{5,15}$/.test(d.licenseNumber || '')) e.licenseNumber = 'err.license';
+  if (!d.licensePhoto) e.licensePhoto = 'err.photoRequired';
+  if (!d.licenseExpiry) e.licenseExpiry = 'err.expiryRequired';
+  else if (!esFutura(d.licenseExpiry)) e.licenseExpiry = 'err.expired';
+
+  if (!d.soatPhoto) e.soatPhoto = 'err.photoRequired';
+  if (!d.soatExpiry) e.soatExpiry = 'err.expiryRequired';
+  else if (!esFutura(d.soatExpiry)) e.soatExpiry = 'err.expired';
+
+  // Revisión técnico-mecánica: solo si aplica según el año del vehículo
+  if (rtmApplies(vehicleYear)) {
+    if (!d.rtmPhoto) e.rtmPhoto = 'err.photoRequired';
+    if (!d.rtmExpiry) e.rtmExpiry = 'err.expiryRequired';
+    else if (!esFutura(d.rtmExpiry)) e.rtmExpiry = 'err.expired';
+  }
+
+  if (!EMAIL.test(d.mpEmail || '')) e.mpEmail = 'err.email';
+  if (!d.terms) e.terms = 'err.terms';
+
+  return e;
+};
+
+// perfil: datos editables del conductor (nombre y celular)
+export const validateProfile = (d) => {
+  const e = {};
+  if (!d.fullName?.trim()) e.fullName = 'err.required';
+  else if (d.fullName.length > 50) e.fullName = 'err.max50';
+  else if (!SOLO_LETRAS.test(d.fullName)) e.fullName = 'err.onlyLetters';
+  if (!/^\d{10}$/.test(d.phone || '')) e.phone = 'err.phone';
   return e;
 };
